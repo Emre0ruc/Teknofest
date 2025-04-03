@@ -1,1 +1,72 @@
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
+#include <iostream>
+#include <string>
 
+using namespace std;
+
+//Function definitions.
+void setHSV(string& color);
+
+//Global variables for HSV values which are used in color detection.
+int minH = 0, minS = 0, minV = 0, maxH = 0, maxS = 0, maxV = 0;
+
+int main() {
+    string _color;
+    cv::Mat blured_img, HSV_img, color_mask;
+    cout << "Please enter the color(red, blue, green): ";
+    cin >> _color;
+    setHSV(_color);
+
+    cv::Mat src = cv::imread("THE PATH OF THE IMAGE YOU WANT TO USE"); //i.e. cv::imread("C:/OPEN_CV/PROJECTS/Images/colorfulShapes.png")
+    //cv::resize(src, src, cv::Size(src.cols/2, src.rows/2)); //It is optional, my image is too large.
+    cv::Mat dst = src.clone(); //It is output image.
+    cv::GaussianBlur(src, blured_img, cv::Size(5,5), 3, 0); //Gaussian blur for color detection.    
+    cv::cvtColor(blured_img, HSV_img, cv::COLOR_BGR2HSV); //Changing RGB image to HSV image.
+    cv::inRange(HSV_img, cv::Scalar(minH, minS, minV), cv::Scalar(maxH, maxS, maxV), color_mask);//Threshold for the desired color.
+    
+    vector<vector<cv::Point>> contours; 
+    vector<cv::Vec4i> hierarchy;
+
+    cv::findContours(color_mask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0,0));
+
+    cv::imshow("Contours", color_mask);
+    cv::imshow("Original Image", src);
+    cv::waitKey(0);
+    return 0;
+}
+
+/**It sets minH, minS, minV and maxH, maxS, maxV values according to the color.*/
+void setHSV(string& color){
+    if(color == "blue"){
+        minH = 50;
+        minS = 190;
+        minV = 190;
+        maxH = 150;
+        maxS = 255;
+        maxV = 255;
+    }
+
+    else if(color == "green"){
+        minH = 35;
+        minS = 100;
+        minV = 100;
+        maxH = 85;
+        maxS = 255;
+        maxV = 255;
+    }
+    else if(color == "red"){
+        minH = 0;
+        minS = 240;
+        minV = 240;
+        maxH = 10;
+        maxS = 255;
+        maxV = 255;
+    }
+    else{
+        cout << "INCORRECT COLOR!!!!" << endl;
+    }
+}
